@@ -22,12 +22,10 @@ from database.models.mongodb import PyObjectId
 from database.models.quote import Quote
 from services.quote_manager.quote_manager import Quote_from_twitter, Quote_from_Api
 
-TOKEN_URL = "/auth/token"
-
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-manager = LoginManager("DEFAULT_SETTINGS.secret", TOKEN_URL)
+manager = LoginManager("DEFAULT_SETTINGS.secret", "/auth/token")
 
 
 @manager.user_loader()
@@ -62,7 +60,7 @@ async def register(user: UserCreate):
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_u)
 
 
-@app.post(TOKEN_URL)
+@app.post("/auth/token")
 async def login(data: OAuth2PasswordRequestForm = Depends()):
     email = data.username
     password = data.password
