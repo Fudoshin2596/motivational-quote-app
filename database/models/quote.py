@@ -1,17 +1,18 @@
 from datetime import datetime
+from typing import List, Optional
 
 from bson import ObjectId
 from pydantic import BaseModel, Field
 
-from database.models.mongodb import PyObjectId
+from database.models.common import PyObjectId
 
 
 class Quote(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
-    user_id: PyObjectId = Field(default_factory=PyObjectId, alias="user_id")
+    user_ids: List[PyObjectId] = Field(default_factory=list, alias="user_ids")
     author: str
     quote: str
-    category: str
+    category: Optional[str]
     created_at: datetime
 
     class Config:

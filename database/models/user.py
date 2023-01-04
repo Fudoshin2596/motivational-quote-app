@@ -4,7 +4,7 @@ from typing import List
 from bson import ObjectId
 from pydantic import BaseModel, Field, EmailStr
 
-from database.models.mongodb import PyObjectId
+from database.models.common import PyObjectId
 
 
 class User(BaseModel):

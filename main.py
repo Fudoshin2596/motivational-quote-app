@@ -16,10 +16,10 @@ from fastapi_login.exceptions import InvalidCredentialsException
 from pydantic import EmailStr
 
 from database.db import quotes_collection, user_collection
-from database.models.mongodb import PyObjectId
+from database.models.common import PyObjectId
 from database.models.quote import Quote
 from database.models.user import User, UserCreate
-from services.quote_manager import Quote_from_twitter, Quote_from_Api
+from services.Quotes.quote_manager import Quotes, Source
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -93,19 +93,9 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
 @app.get("/create/quotes/{user_id}", response_description="Add new quote", response_model=Quote)
 async def create_quote(user_id: str):
     user_id = await create_user_if_not_exist(user_id)
-    quote_class = random.choice([Quote_from_twitter(), Quote_from_Api()])
-    aut = None
-    quote = None
-    while aut is None or quote is None:
-        aut, quote = quote_class.getInfo()
-
-    quote = Quote(
-        author=aut,
-        quote=quote,
-        category="random",
-        user_id=PyObjectId(user_id),
-        created_at=datetime.now(),
-    )
+    quote_class = Quotes(source=random.choice(list(Source)))
+    quote = quote_class.get_new_quote()
+    quote.user_ids.append(PyObjectId(user_id))
     encoded_task = jsonable_encoder(quote)
     q = await quotes_collection.insert_one(encoded_task)
     created_q = await quotes_collection.find_one({"_id": q.inserted_id})
