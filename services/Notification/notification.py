@@ -1,6 +1,6 @@
 import os
 
-from attr import define, field
+from attrs import define, field
 from dotenv import load_dotenv
 from twilio.rest import Client
 
