@@ -10,22 +10,36 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi_login import LoginManager
 from fastapi_login.exceptions import InvalidCredentialsException
 from pydantic import EmailStr
 
-from database.models.user import User, UserCreate
 from database.db import quotes_collection, user_collection
 from database.models.mongodb import PyObjectId
 from database.models.quote import Quote
+from database.models.user import User, UserCreate
 from services.quote_manager import Quote_from_twitter, Quote_from_Api
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 manager = LoginManager("DEFAULT_SETTINGS.secret", "/auth/token")
+
+
+async def create_user_if_not_exist(user_id: str) -> str:
+    user = await user_collection.find_one({"_id": user_id})
+    if not user:
+        user_db = User(
+            name="Test User",
+            email=EmailStr("a.joeljr@hotmail.com"),
+            password="test",
+            quotes=[],
+            created_at=datetime.now(),
+        )
+        encoded_task = jsonable_encoder(user_db)
+        u = await user_collection.insert_one(encoded_task)
+        return str(u.inserted_id)
+    return user_id
 
 
 @manager.user_loader()
@@ -34,15 +48,14 @@ async def get_user(email: str):
     return user if user else None
 
 
-@app.get("/", response_class=HTMLResponse)
-def index(request: Request):
-    return templates.TemplateResponse("index.html", context={"request": request})
-
-
-@app.get("/auth")
+@app.get("/")
 def auth():
-    with open("templates/auth.html", 'r') as f:
-        return HTMLResponse(content=f.read())
+    return {"message": "Hello World"}
+
+
+@app.get("/auth", response_class=HTMLResponse)
+def auth(request: Request):
+    return templates.TemplateResponse("auth.html", context={"request": request})
 
 
 @app.post("/auth/register")
@@ -73,28 +86,8 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
         raise InvalidCredentialsException
 
     access_token = manager.create_access_token(data=dict(sub=email))
-    return JSONResponse(status_code=status.HTTP_200_OK, content={'access_token': access_token, 'token_type': 'bearer', 'user_id': str(user['_id'])})
-
-
-@app.get("/private")
-def private_route(user=Depends(manager)):
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"detail": f"Welcome {user['email']}"})
-
-
-async def create_user_if_not_exist(user_id: str) -> str:
-    user = await user_collection.find_one({"_id": user_id})
-    if not user:
-        user_db = User(
-            name="Test User",
-            email=EmailStr("a.joeljr@hotmail.com"),
-            password="test",
-            quotes=[],
-            created_at=datetime.now(),
-        )
-        encoded_task = jsonable_encoder(user_db)
-        u = await user_collection.insert_one(encoded_task)
-        return str(u.inserted_id)
-    return user_id
+    return JSONResponse(status_code=status.HTTP_200_OK,
+                        content={'access_token': access_token, 'token_type': 'bearer', 'user_id': str(user['_id'])})
 
 
 @app.get("/create/quotes/{user_id}", response_description="Add new quote", response_model=Quote)
