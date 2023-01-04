@@ -20,7 +20,7 @@ from database.models.user import User, UserCreate
 from database.db import quotes_collection, user_collection
 from database.models.mongodb import PyObjectId
 from database.models.quote import Quote
-from services.quote_manager.quote_manager import Quote_from_twitter, Quote_from_Api
+from services.quote_manager import Quote_from_twitter, Quote_from_Api
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
