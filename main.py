@@ -1,4 +1,3 @@
-import json
 import random
 from datetime import datetime
 from typing import List
@@ -17,7 +16,7 @@ from fastapi_login import LoginManager
 from fastapi_login.exceptions import InvalidCredentialsException
 from pydantic import EmailStr
 
-from backend.database.models.user import User, UserCreate
+from database.models.user import User, UserCreate
 from database.db import quotes_collection, user_collection
 from database.models.mongodb import PyObjectId
 from database.models.quote import Quote

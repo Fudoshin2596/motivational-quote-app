@@ -3,7 +3,7 @@ from datetime import datetime
 from bson import ObjectId
 from pydantic import BaseModel, Field
 
-from backend.database.models.mongodb import PyObjectId
+from database.models.mongodb import PyObjectId
 
 
 class Quote(BaseModel):

@@ -1,11 +1,10 @@
 from datetime import datetime
-from datetime import datetime
 from typing import List
 
 from bson import ObjectId
 from pydantic import BaseModel, Field, EmailStr
 
-from backend.database.models.mongodb import PyObjectId
+from database.models.mongodb import PyObjectId
 
 
 class User(BaseModel):
