@@ -9,9 +9,9 @@ from database.models.common import PyObjectId
 
 class User(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
-    name: str = Field(...)
+    username: str = Field(...)
     email: EmailStr = Field(...)
-    password: str
+    phone_number: str = Field(...)
     quotes: List[PyObjectId] = Field(default_factory=list, alias="quotes")
     created_at: datetime
 
@@ -24,4 +24,4 @@ class User(BaseModel):
 class UserCreate(BaseModel):
     username: str
     email: str
-    password: str
+    phone_number: str

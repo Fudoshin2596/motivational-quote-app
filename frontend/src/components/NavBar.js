@@ -47,6 +47,7 @@ const NavBar = () => {
                 <NavLink
                   tag={RouterNavLink}
                   to="/"
+                  onClick={() => window.location.href="/"}
                   exact
                   activeClassName="router-link-exact-active"
                 >
@@ -58,6 +59,7 @@ const NavBar = () => {
                   <NavLink
                     tag={RouterNavLink}
                     to="/external-api"
+                    onClick={() => window.location.href="/external-api"}
                     exact
                     activeClassName="router-link-exact-active"
                   >
@@ -94,6 +96,7 @@ const NavBar = () => {
                     <DropdownItem
                       tag={RouterNavLink}
                       to="/profile"
+                      onClick={() => window.location.href="/profile"}
                       className="dropdown-profile"
                       activeClassName="router-link-exact-active"
                     >
