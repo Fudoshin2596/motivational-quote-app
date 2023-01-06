@@ -137,3 +137,5 @@ dmypy.json
 /services/Prediction/api/data/
 /services/Prediction/api/model/
 .DS_Store
+!/frontend/.idea/
+!/frontend/src/auth_config.json
