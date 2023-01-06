@@ -136,3 +136,4 @@ dmypy.json
 !/services/Prediction/api/model/text_classification.pkl
 /services/Prediction/api/data/
 /services/Prediction/api/model/
+.DS_Store
