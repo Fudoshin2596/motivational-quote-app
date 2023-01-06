@@ -130,7 +130,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+/.idea/
 /.idea
+.idea
 !/services/Prediction/api/data/
 !/services/Prediction/api/model/
 !/services/Prediction/api/model/text_classification.pkl
