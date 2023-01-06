@@ -46,7 +46,6 @@ export const ProfileComponent = () => {
             email: user.email,
             phone_number: `+1${state.apiMessage.phone_number}`,
         }
-        console.log(to_save)
         try {
             const url = `http://127.0.0.1:8083/auth/register`;
             const response = await fetch(url, {
