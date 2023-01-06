@@ -1,8 +1,6 @@
-import os
 import random
 
 import uvicorn
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
@@ -10,11 +8,8 @@ from fastapi.responses import JSONResponse
 
 from database.models.quote import Quote
 from services.Quotes.quote_manager import Quotes, Source
+from services.utils.config import quote_port, local_host
 
-load_dotenv()
-port = os.getenv('QUOTE_PORT')
-
-# Creates app instance
 app = FastAPI()
 
 
@@ -26,4 +21,4 @@ def quote():
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=int(port), reload=True)
+    uvicorn.run("main:app", host=local_host, port=quote_port, reload=True)

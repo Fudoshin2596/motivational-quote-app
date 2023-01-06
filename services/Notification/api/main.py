@@ -1,18 +1,12 @@
-import os
-
 import uvicorn
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi import status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from services.Notification.notification import NotificationClient
+from services.utils.config import notification_port, local_host
 
-load_dotenv()
-port = os.getenv('NOTIFICATION_PORT')
-
-# Creates app instance
 app = FastAPI()
 
 
@@ -30,4 +24,4 @@ async def notify(request: NotificationRequest):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=int(port), reload=True)
+    uvicorn.run("main:app", host=local_host, port=notification_port, reload=True)

@@ -1,17 +1,12 @@
-import os
-
 import joblib
 import uvicorn
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi import status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-load_dotenv()
-port = os.getenv('PREDICTION_PORT')
+from services.utils.config import prediction_port, local_host, prediction_model_path
 
-# Creates app instance
 app = FastAPI()
 
 
@@ -19,7 +14,7 @@ class QuoteRequest(BaseModel):
     quote: str
 
 
-def predict(quote: str, path='model/text_classification.pkl'):
+def predict(quote: str, path=prediction_model_path):
     model = open(path, 'rb')
     pipeline = joblib.load(model)
     labels_text = ['aspirations', 'emotional', 'personal', 'thoughtful', 'work']
@@ -34,4 +29,4 @@ async def public(quote_request: QuoteRequest):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=int(port), reload=True)
+    uvicorn.run("main:app", host=local_host, port=prediction_port, reload=True)
