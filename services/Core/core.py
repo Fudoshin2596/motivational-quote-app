@@ -33,6 +33,7 @@ async def run():
             # update user with quote id
             user["quotes"].append(q.inserted_id)
             await user_collection.replace_one({"_id": user_id}, user)
+            print(f'Quote {quote.quote} sent to {user["phone_number"]}')
         else:
             print('Failed to send quote to user', n)
 

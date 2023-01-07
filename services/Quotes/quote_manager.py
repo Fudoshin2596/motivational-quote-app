@@ -1,4 +1,4 @@
-import json
+import asyncio
 import os
 import random
 import re
@@ -7,11 +7,11 @@ from datetime import datetime
 from enum import Enum
 from typing import Dict, Optional, Any, List
 
-import requests
 from attrs import define, field
 from dotenv import load_dotenv
 
 from database.models.quote import Quote
+from services.utils.config import httpclient
 
 load_dotenv()
 
@@ -44,12 +44,12 @@ class QuoteFromApi:
         default={'x-rapidapi-host': os.getenv('XRAPIDHOST'), 'x-rapidapi-key': os.getenv('XRAPIDKEY')}
     )
 
-    def get_response(self) -> Dict[str, Any]:
-        response = requests.get(self.url, headers=self.headers, params=self.querystring)
-        return json.loads(response.text)
+    async def get_response(self) -> Dict[str, Any]:
+        response = await httpclient.get(self.url, headers=self.headers, params=self.querystring)
+        return response.json()
 
-    def get_quote(self) -> QuoteResponse:
-        res = self.get_response()
+    async def get_quote(self) -> QuoteResponse:
+        res = await self.get_response()
         org = res.get('originator')
         return QuoteResponse(
             quote=res.get('content', ""),
@@ -87,20 +87,21 @@ class QuoteFromTwitter:
         return f"https://api.twitter.com/2/tweets/search/recent?query=from:{target}&tweet.fields=text"
 
     @staticmethod
-    def connect_to_endpoint(url, headers) -> Dict[str, Any]:
-        response = requests.request("GET", url, headers=headers)
+    async def connect_to_endpoint(url, headers) -> Dict[str, Any]:
+        # response = requests.request("GET", url, headers=headers)
+        response = await httpclient.get(url, headers=headers)
         if response.status_code != 200:
             raise Exception(response.status_code, response.text)
         return response.json()
 
-    def get_tweet(self) -> List[QuoteResponse]:
+    async def get_tweet(self) -> List[QuoteResponse]:
         working = False
         tweets_quote = []
         tweets_aut = []
         while working is False:
             try:
                 url = self.create_url()
-                json_response = self.connect_to_endpoint(url, self.headers)
+                json_response = await self.connect_to_endpoint(url, self.headers)
                 for response in json_response['data']:
                     regex_q = r'(.*?)(?=(\-|\"|\~))'
                     regex_a = r'(?<=(\-|\~))(.*?)(?=(\#|\"|(http)|\n|\@))'
@@ -120,8 +121,8 @@ class QuoteFromTwitter:
                 working = False
         return [QuoteResponse(quote=x or "", author=y or "") for x, y in zip(tweets_quote, tweets_aut)]
 
-    def get_quote(self) -> QuoteResponse:
-        tweet_list = self.get_tweet()
+    async def get_quote(self) -> QuoteResponse:
+        tweet_list = await self.get_tweet()
         for quote_response in tweet_list:
             if quote_response.isvalid:
                 return quote_response
@@ -134,10 +135,10 @@ class Quotes:
     _quote_from_api: QuoteFromApi = field(init=False, default=QuoteFromApi())
     _quote_from_twitter: QuoteFromTwitter = field(init=False, default=QuoteFromTwitter())
 
-    def get_new_quote(self) -> Quote:
+    async def get_new_quote(self) -> Quote:
         quote_response = QuoteResponse()
         while not quote_response.isvalid:
-            quote_response = self.get_quote(self.source)
+            quote_response = await self.get_quote(self.source)
         return Quote(
             author=quote_response.author,
             quote=quote_response.quote,
@@ -146,26 +147,26 @@ class Quotes:
             created_at=datetime.now(),
         )
 
-    def make_event(self) -> Dict[str, str]:
+    async def make_event(self) -> Dict[str, str]:
         """
         formats quote into a lambda event structure
         """
         event_dict: Dict[str, str] = {}
         quote_response = QuoteResponse()
         while not quote_response.isvalid:
-            quote_response = self.get_quote(self.source)
+            quote_response = await self.get_quote(self.source)
         event_dict["author"] = quote_response.author
         event_dict["quote"] = quote_response.quote
         return event_dict
 
     @abstractmethod
-    def get_quote(self, source: Source) -> QuoteResponse:
+    async def get_quote(self, source: Source) -> QuoteResponse:
         if source == Source.API:
-            return self._quote_from_api.get_quote()
-        return self._quote_from_twitter.get_quote()
+            return await self._quote_from_api.get_quote()
+        return await self._quote_from_twitter.get_quote()
 
 
 if __name__ == '__main__':
-    quote_class = Quotes(source=random.choice(list(Source)))
-    quote = quote_class.get_new_quote()
+    quote_class = Quotes(source=Source.API)
+    quote = asyncio.run(quote_class.get_new_quote())
     print(quote)

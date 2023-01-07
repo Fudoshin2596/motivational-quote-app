@@ -14,10 +14,10 @@ app = FastAPI()
 
 
 @app.get("/quote", response_model=Quote)
-def quote():
+async def quote():
     quote_class = Quotes(source=random.choice(list(Source)))
-    Q = jsonable_encoder(quote_class.get_new_quote())
-    return JSONResponse(status_code=status.HTTP_200_OK, content=Q)
+    q = await quote_class.get_new_quote()
+    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(q))
 
 
 if __name__ == "__main__":
