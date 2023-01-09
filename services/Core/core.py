@@ -1,30 +1,58 @@
 import asyncio
+import random
 
+from attrs import define
 from fastapi.encoders import jsonable_encoder
 
 from database.db import user_collection, quotes_collection
 from database.models.quote import Quote
-from services.utils.config import quote_port, local_host, httpclient, prediction_port, notification_port
+from services.Notification.notification import NotificationClient
+from services.Prediction.main import get_prediction
+from services.Quotes.quote_manager import Quotes, Source
+
+
+@define
+class NotificationRequest:
+    quote: str
+    author: str
+    recipient: str
+
+
+@define
+class QuoteRequest:
+    quote: str
+
+
+async def notify(request: NotificationRequest) -> str:
+    twilio_client = NotificationClient(quote=request.quote, author=request.author, recipient=request.recipient)
+    sms_id = twilio_client.send_sms()
+    return sms_id
+
+
+async def predict(quote_request: QuoteRequest) -> str:
+    prediction = get_prediction(quote_request.quote)
+    return prediction
+
+
+async def get_quote() -> Quote:
+    quote_class = Quotes(source=random.choice(list(Source)))
+    q = await quote_class.get_new_quote()
+    return q
 
 
 # noinspection HttpUrlsUsage
 async def run():
     # get quote
-    q = await httpclient.get(f'http://{local_host}:{quote_port}/quote')
-    quote = Quote(**q.json())
+    quote: Quote = await get_quote()
     # predict category
-    c = await httpclient.post(f'http://{local_host}:{prediction_port}/predict', json={'quote': quote.quote})
-    quote.category = c.text
+    quote.category = await predict(QuoteRequest(quote=quote.quote))
     # get all users from db
     all_users = await user_collection.find().to_list(None)
     for user in all_users:
         user_id = user["_id"]
         # send quote to user
-        n = await httpclient.post(
-            f'http://{local_host}:{notification_port}/notify',
-            json={'quote': quote.quote, 'author': quote.author, 'recipient': user['phone_number']}
-        )
-        if n.text:
+        n = await notify(NotificationRequest(quote=quote.quote, author=quote.author, recipient=user['phone_number']))
+        if n:
             # update quote with user id
             quote.user_ids.append(user_id)
             # save quote to db

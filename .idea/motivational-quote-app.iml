@@ -3,8 +3,8 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/venv" />
-      <excludeFolder url="file://$MODULE_DIR$/services/Prediction/api/data" />
-      <excludeFolder url="file://$MODULE_DIR$/services/Prediction/api/model" />
+      <excludeFolder url="file://$MODULE_DIR$/services/Prediction/data" />
+      <excludeFolder url="file://$MODULE_DIR$/services/Prediction/model" />
       <excludeFolder url="file://$MODULE_DIR$/frontend/.idea" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.10 (motivational-quote-app)" jdkType="Python SDK" />
